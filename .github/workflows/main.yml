@@ -2,9 +2,9 @@ name: Connect to remote server using SSH
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-        - main
+  # push:
+  #   branches:
+  #       - main
 
 env:
   AWS_REGION : "us-east-1" #Change to reflect your Region
@@ -20,7 +20,7 @@ jobs:
     name: SSH
     runs-on: ubuntu-latest
     steps:
-    - name: executing remote ssh commands using password
+    - name: executing remote ssh commands using key
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
