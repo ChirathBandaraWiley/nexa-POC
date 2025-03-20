@@ -18,13 +18,26 @@ jobs:
         id: get_version
         run: |
           VERSION=$(cat nexaHealthVersion | tr -d '\n')
+          if [ -z "$VERSION" ]; then
+            echo "Error: Version from file is empty" >&2
+            exit 1
+          fi
           echo "TAG_NAME=$VERSION" >> $GITHUB_ENV
 
       - name: Get previous tag
         id: get_prev_tag
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          PREV_TAG=$(git tag --sort=-v:refname | head -n 1)
           echo "PREV_TAG=$PREV_TAG" >> $GITHUB_ENV
+
+      - name: Validate version
+        run: |
+          if [ -n "$PREV_TAG" ]; then
+            if printf "%s\n%s" "$PREV_TAG" "$TAG_NAME" | sort -V | head -n 1 | grep -qx "$TAG_NAME"; then
+              echo "Error: New version ($TAG_NAME) is less than or equal to the previous version ($PREV_TAG)" >&2
+              exit 1
+            fi
+          fi
 
       - name: Generate release notes
         id: generate_notes
