@@ -1,3 +1,3 @@
 #!/bin/bash
-VERSION=0.1.1
+VERSION=dev
 echo "Deploying to DEV environment"
