@@ -1,0 +1,32 @@
+name: Create Tag and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version from file
+        id: get_version
+        run: |
+          VERSION=$(cat nexaHealthVersion | tr -d '\n')
+          echo "TAG_NAME=$VERSION" >> $GITHUB_ENV
+
+      - name: Create Git Tag
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@github.com"
+          git tag $TAG_NAME
+          git push origin $TAG_NAME
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "$TAG_NAME" --title "Release $TAG_NAME" --notes "Automated release for version $TAG_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
