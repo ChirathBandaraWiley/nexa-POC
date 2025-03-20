@@ -8,6 +8,8 @@ on:
 jobs:
   create-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Explicitly grant permission to push tags and create releases
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,15 +20,33 @@ jobs:
           VERSION=$(cat nexaHealthVersion | tr -d '\n')
           echo "TAG_NAME=$VERSION" >> $GITHUB_ENV
 
+      - name: Get previous tag
+        id: get_prev_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          echo "PREV_TAG=$PREV_TAG" >> $GITHUB_ENV
+
+      - name: Generate release notes
+        id: generate_notes
+        run: |
+          if [ -n "$PREV_TAG" ]; then
+            NOTES=$(git log --oneline $PREV_TAG..HEAD)
+          else
+            NOTES=$(git log --oneline)
+          fi
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+          echo "$NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Create Git Tag
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@github.com"
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
           git tag $TAG_NAME
           git push origin $TAG_NAME
 
       - name: Create GitHub Release
         run: |
-          gh release create "$TAG_NAME" --title "Release $TAG_NAME" --notes "Automated release for version $TAG_NAME"
+          gh release create "$TAG_NAME" --title "Release $TAG_NAME" --notes "$RELEASE_NOTES"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
