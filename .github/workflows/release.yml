@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   create-release:
@@ -22,7 +23,15 @@ jobs:
             echo "Error: Version from file is empty" >&2
             exit 1
           fi
+          echo "TAG_NAME=$VERSION"
           echo "TAG_NAME=$VERSION" >> $GITHUB_ENV
+
+      - name: Get previous tag
+        id: get_prev_tag
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | head -n 1 2>/dev/null)
+          echo "PREV_TAG=$PREV_TAG"
+          echo "PREV_TAG=$PREV_TAG" >> $GITHUB_ENV
 
       - name: Generate release notes
         id: generate_notes
