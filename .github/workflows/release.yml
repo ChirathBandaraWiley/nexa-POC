@@ -25,8 +25,8 @@ jobs:
             echo "Error: Version from file is empty" >&2
             exit 1
           fi
-          echo "TAG_NAME=$VERSION"
-          echo "TAG_NAME=$VERSION" >> $GITHUB_ENV
+          echo "TAG_NAME=v$VERSION"
+          echo "TAG_NAME=v$VERSION" >> $GITHUB_ENV
 
       - name: Get previous tag
         id: get_prev_tag
